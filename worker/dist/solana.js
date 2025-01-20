@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendSol = sendSol;
 const web3_js_1 = require("@solana/web3.js");
 const bs58_1 = __importDefault(require("bs58"));
-const connection = new web3_js_1.Connection("https://api.mainnet-beta.solana.com", "finalized");
+const connection = new web3_js_1.Connection("https://api.devnet.solana.com", "finalized");
 function sendSol(to, amount) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;

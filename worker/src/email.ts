@@ -6,22 +6,22 @@ import nodemailer from "nodemailer";
 // SMTP_ENDPOINT
 
 const transport = nodemailer.createTransport({
-    host: process.env.SMTP_ENDPOINT,
-    port: 465,
-    secure: false, // upgrade later with STARTTLS
-    auth: {
-      user: process.env.SMTP_USERNAME,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
+  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USERNAME,
+    pass: "qktm uugz nvcj nqxm",
+  },
+});
 
 export async function sendEmail(to: string, body: string) {
   console.log("hi there")
-    await transport.sendMail({
-        from: "zaidkh1303@gmail.com",
-        sender: "zaid.zapier.com",
-        to,
-        subject: "Hello from Zapier",
-        text: body
-    })
+  await transport.sendMail({
+    from: "zaidkh1303@gmail.com",
+    to,
+    subject: "Hello from Zapier",
+    text: body
+  })
 }

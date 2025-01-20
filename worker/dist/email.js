@@ -19,12 +19,13 @@ const nodemailer_1 = __importDefault(require("nodemailer"));
 // SMTP_PASSWORD=""
 // SMTP_ENDPOINT
 const transport = nodemailer_1.default.createTransport({
-    host: process.env.SMTP_ENDPOINT,
-    port: 465,
-    secure: false, // upgrade later with STARTTLS
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.SMTP_USERNAME,
-        pass: process.env.SMTP_PASSWORD,
+        pass: "qktm uugz nvcj nqxm",
     },
 });
 function sendEmail(to, body) {
@@ -32,7 +33,6 @@ function sendEmail(to, body) {
         console.log("hi there");
         yield transport.sendMail({
             from: "zaidkh1303@gmail.com",
-            sender: "zaid.zapier.com",
             to,
             subject: "Hello from Zapier",
             text: body

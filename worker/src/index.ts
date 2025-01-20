@@ -7,48 +7,49 @@ import { parse } from "./parser";
 import { sendEmail } from "./email";
 import { sendSol } from "./solana";
 
-const prismaClient=new PrismaClient();
+const prismaClient = new PrismaClient();
 
-const TOPIC_NAME="zap-events";
-const kafka=new Kafka({
-    clientId:'outbox-processor',
-    brokers:['localhost:9092']
+const TOPIC_NAME = "zap-events";
+
+const kafka = new Kafka({
+    clientId: 'outbox-processor',
+    brokers: ['localhost:9092']
 })
 
-async function main(){
-    const consumer=kafka.consumer({groupId:'main-worker'});
+async function main() {
+    const consumer = kafka.consumer({ groupId: 'main-worker' });
     await consumer.connect();
-    const producer =  kafka.producer();
+    const producer = kafka.producer();
     await producer.connect();
 
-    await consumer.subscribe({topic:TOPIC_NAME,fromBeginning:true})
+    await consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true })
 
     await consumer.run({
-        autoCommit:false,
-        eachMessage:async ({topic,partition,message})=>{
+        autoCommit: false,
+        eachMessage: async ({ topic, partition, message }) => {
             console.log({
                 partition,
-                offset:message.offset,
-                value:message.value?.toString()
+                offset: message.offset,
+                value: message.value?.toString()
             })
 
-            if(!message.value?.toString()){
+            if (!message.value?.toString()) {
                 return;
             }
-            const parsedvalue=JSON.parse(message.value?.toString());
-            const zapRunId=parsedvalue.zapRunId;
-            const stage=parsedvalue.stage;
+            const parsedvalue = JSON.parse(message.value?.toString());
+            const zapRunId = parsedvalue.zapRunId;
+            const stage = parsedvalue.stage;
 
-            const zapRunDetails=await prismaClient.zapRun.findFirst({
-                where:{
-                    id:zapRunId
+            const zapRunDetails = await prismaClient.zapRun.findFirst({
+                where: {
+                    id: zapRunId
                 },
-                include:{
-                    zap:{
-                        include:{
-                            actions:{
-                                include:{
-                                    type:true
+                include: {
+                    zap: {
+                        include: {
+                            actions: {
+                                include: {
+                                    type: true
                                 }
                             }
                         }
@@ -56,55 +57,52 @@ async function main(){
                 }
             });
 
-            const currentAction=zapRunDetails?.zap.actions.find(x=>x.sortingOrder===stage);
-            if(!currentAction){
+            const currentAction = zapRunDetails?.zap.actions.find(x => x.sortingOrder === stage);
+            if (!currentAction) {
                 console.log("Current action not found?");
                 return;
             }
 
-            const zapRunMetadata=zapRunDetails?.metadata;
+            const zapRunMetadata = zapRunDetails?.metadata;
 
-            if(currentAction.type.id==="email"){
+            if (currentAction.type.id === "email") {
                 const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
-            const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
-            console.log(`Sending out email to: ${to} body is: ${body}`)
-            await sendEmail(to,body)
+                const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
+                console.log(`Sending out email to: ${to} body is: ${body}`)
+                await sendEmail(to, body)
             }
 
-            if(currentAction.type.id==="send-sol"){
+            else if (currentAction.type.id === "send-sol") {
                 const amount = parse((currentAction.metadata as JsonObject)?.amount as string, zapRunMetadata);
-            const address = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
-            console.log(`Sending out SOL of ${amount} to address ${address}`);
-            await sendSol(address,amount)
+                const address = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
+                console.log(`Sending out SOL of ${amount} to address ${address}`);
+                await sendSol(address, amount)
             }
 
 
 
-            await new Promise(r=>setTimeout(r,2000));
+            await new Promise(r => setTimeout(r, 2000));
 
             const lastStage = (zapRunDetails?.zap.actions?.length || 1) - 1; // 1
             console.log(lastStage);
             console.log(stage);
             if (lastStage !== stage) {
-              console.log("pushing back to the queue")
-              await producer.send({
-                topic: TOPIC_NAME,
-                messages: [{
-                  value: JSON.stringify({
-                    stage: stage + 1,
-                    zapRunId
-                  })
-                }]
-              })  
+                console.log("pushing back to the queue")
+                await producer.send({
+                    topic: TOPIC_NAME,
+                    messages: [{
+                        value: JSON.stringify({
+                            stage: stage + 1,
+                            zapRunId
+                        })
+                    }]
+                })
             }
-
-
-
             console.log("done");
             await consumer.commitOffsets([{
-                topic:TOPIC_NAME,
-                partition:partition,
-                offset:(parseInt(message.offset)+1).toString()
+                topic: TOPIC_NAME,
+                partition: partition,
+                offset: (parseInt(message.offset) + 1).toString()
             }])
         }
 

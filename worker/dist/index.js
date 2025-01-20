@@ -71,7 +71,7 @@ function main() {
                     console.log(`Sending out email to: ${to} body is: ${body}`);
                     yield (0, email_1.sendEmail)(to, body);
                 }
-                if (currentAction.type.id === "send-sol") {
+                else if (currentAction.type.id === "send-sol") {
                     const amount = (0, parser_1.parse)((_g = currentAction.metadata) === null || _g === void 0 ? void 0 : _g.amount, zapRunMetadata);
                     const address = (0, parser_1.parse)((_h = currentAction.metadata) === null || _h === void 0 ? void 0 : _h.address, zapRunMetadata);
                     console.log(`Sending out SOL of ${amount} to address ${address}`);
