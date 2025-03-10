@@ -1,27 +1,11 @@
 
-
-export const Feature = ({ title, subtitle }: {
-    title: string,
-    subtitle: string
-}) => {
-    return <div className="flex pl-8 pt-2">
-        <Check />
-        <div className="flex flex-col justify-center">
-            <div className="flex">
-                <div className="text-sm font-semibold">
-                    {title}
-                </div>
-
-                <div className="pl-1 text-sm">
-                    {subtitle}
-                </div>
-            </div>
+//@ts-ignore
+export const Feature = ({ title, subtitle, icon }) => {
+    return (
+        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
+            <div className="text-3xl mb-3">{icon}</div>
+            <h3 className="text-lg font-semibold text-center">{title}</h3>
+            <p className="text-gray-600 text-center text-sm mt-1">{subtitle}</p>
         </div>
-    </div>
-}
-
-function Check() {
-    return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-    </svg>
+    )
 }
